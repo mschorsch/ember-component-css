@@ -4,7 +4,8 @@
   "dependencies": {
     "ember-cli-babel": "*",
     "ember-cli-htmlbars": "*",
-    "ember-cli-styles-preprocessor": "*"
+    "ember-cli-styles-preprocessor": "*",
+    "ember-cli-typescript": "*"
   },
   "keywords": [
     "ember-addon"

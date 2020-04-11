@@ -10,10 +10,10 @@ span > span > span {
   color: rgb(0, 0, 3);
 }
 
-&__element {
+:--component__element {
   color: rgb(0, 0, 4);
 }
 
-&__element--variant {
+:--component__element--variant {
   color: rgb(0, 0, 5);
 }

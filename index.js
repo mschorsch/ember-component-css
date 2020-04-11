@@ -1,63 +1,35 @@
 'use strict';
 
-const path = require('path');
+const fs = require('fs');
 
-const Funnel = require('broccoli-funnel');
-
-const {
-  ColocateStyles,
-  NamespaceStyles,
-  ColocatedNamespaceObjects,
-  ColocatedNamespaceTemplates,
-} = require('./lib/colocate-namespace.js');
-
-module.exports = {
-  _defaultOptions(enviroment = true) {
-    return {
-      terseClassNames: enviroment === 'production',
+function registerTsNode() {
+  // eslint-disable-next-line node/no-deprecated-api
+  if (!require.extensions['.ts']) {
+    const options = {
+      project: `${__dirname}/ts/tsconfig.json`
     };
-  },
 
-  _options({ options: { emberCliStyles } = {}}) {
-    return Object.assign(this._defaultOptions(), emberCliStyles);
-  },
-
-  _baseNode(app) {
-    if (app.treePaths) {
-      return new Funnel(path.join(app.root, app.treePaths.addon));
-    } else {
-      const appTree = (app.app || app).trees.app;
-      if (typeof appTree === 'string') {
-        return new Funnel(path.join(app.project.root, appTree));
-      } else {
-        return appTree;
-      }
+    // If we're operating in the context of another project, which might happen
+    // if someone has installed ember-cli-typescript from git, only perform
+    // transpilation. In this case, we also overwrite the default ignore glob
+    // (which ignores everything in `node_modules`) to instead ignore anything
+    // that doesn't end with `.ts`.
+    if (process.cwd() !== __dirname) {
+      options.ignore = [/\.(?!ts$)\w+$/];
+      options.transpileOnly = true;
     }
-  },
 
-  setupPreprocessorRegistry(type, registry) {
-    const baseNode = this._baseNode(registry.app);
-    const { terseClassNames } = this._options(registry.app);
+    require('ts-node').register(options);
+  }
+}
 
-    registry.add('css', new ColocateStyles({
-      getExtentions: registry.extensionsForType.bind(registry),
-      baseNode,
-    }));
+// If transpiled output is present, always default to loading that first.
+// Otherwise, register ts-node if necessary and load from source.
+if (fs.existsSync(`${__dirname}/js/addon.js`)) {
+  module.exports = require('./js/addon').default;
 
-    registry.add('css', new NamespaceStyles({
-      getExtentions: registry.extensionsForType.bind(registry),
-      terseClassNames,
-    }));
+} else {
+  registerTsNode();
 
-    registry.add('js', new ColocatedNamespaceObjects({
-      getExtentions: registry.extensionsForType.bind(registry),
-      baseNode,
-    }));
-
-    registry.add('template', new ColocatedNamespaceTemplates({
-      terseClassNames,
-    }));
-  },
-
-  name: require('./package').name
-};
+  module.exports = require('./ts/addon').default;
+}
