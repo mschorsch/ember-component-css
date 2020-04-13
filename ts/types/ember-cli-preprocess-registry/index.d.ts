@@ -6,17 +6,17 @@ declare module 'ember-cli-preprocess-registry' {
 
   import {Node as BroccoliNode} from 'broccoli-node-api';
 
-  interface PreprocessPlugin {
+  export interface PreprocessPlugin {
     name: string;
     toTree(tree: BroccoliNode /*, options */): BroccoliNode;
   }
 
-  interface PreprocessPluginJsCss {
+  export interface PreprocessPluginJsCss {
     name: string;
     toTree(tree: BroccoliNode, inputPath: string, outputPath: string /*, options */): BroccoliNode;
   }
 
-  class PreprocessRegistry {
+  export default class PreprocessRegistry {
     /**
      * Adds the provided plugin to the registry for the type specified.
      */
@@ -40,6 +40,4 @@ declare module 'ember-cli-preprocess-registry' {
     remove(type: 'js' | 'css', plugin: PreprocessPluginJsCss): void;
     remove(type: string, plugin: PreprocessPlugin): void;
   }
-
-  export = PreprocessRegistry;
 }

@@ -18,22 +18,19 @@ export class StyleInfo extends TreeWalker {
     this.terseClassNames = options.terseClassNames;
   }
 
-  create(stylePath: string): void {
+  create(stylePath: string, _rootPath: string): void {
     const styleNamespace = generateClassName(stylePath, this.terseClassNames);
     const styleFile = fileContents(styleNamespace);
     const fullStyleFilePath = this.fullStylePath(stylePath)
-
     return fs.outputFileSync(fullStyleFilePath, styleFile);
   }
 
-  unlink(stylePath: string): void {
+  unlink(stylePath: string, _rootPath: string): void {
     const fullStyleFilePath = this.fullStylePath(stylePath)
-
     return fs.removeSync(fullStyleFilePath);
   }
 
   private fullStylePath(stylePath: string): string {
-    // @ts-ignore
     return path.join(this.outputPath, path.dirname(stylePath), 'styles.js');
   }
 }

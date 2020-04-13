@@ -20,7 +20,6 @@ function addon<T extends ExtendOptions<Addon>>(options: T & ExtendThisType<Addon
 // - remove ember-cli-styles-preprocessor???
 // - tsconfig strict checks
 // - remove ts-ignores
-// - add type defintions for broccoli-tree-walker etc.
 // - eslint more strict
 // - register setupPreprocessorRegistry in included? (see https://github.com/FortAwesome/ember-fontawesome/blob/64cc1786bd05479862c71f25da0c6db8a33861dd/index.js#L193)
 // - update dependencies to the latest
@@ -70,7 +69,6 @@ export default addon({
       baseNode,
     }));
 
-    // @ts-ignore
     registry.add('template', new ColocatedNamespaceTemplates({
       getExtentions: registry.extensionsForType.bind(registry),
       baseNode,

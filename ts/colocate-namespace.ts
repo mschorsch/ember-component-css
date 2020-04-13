@@ -1,10 +1,11 @@
 import funnel from 'broccoli-funnel';
-import merge from 'broccoli-merge-trees';
+import mergeTrees from 'broccoli-merge-trees';
 import {default as generateManifest, Manifest} from 'broccoli-file-manifest';
 import {NamespaceStyles as BroccoliNamespaceStyles} from './namespace-styles';
 import {ScopeTemplates} from './scope-templates';
 import {StyleInfo} from './style-info';
 import {InputNode, Node as BroccoliNode} from 'broccoli-node-api';
+import {PreprocessPlugin, PreprocessPluginJsCss} from 'ember-cli-preprocess-registry';
 
 interface Options {
   getExtentions(extension: string): Array<string>; // FIXME
@@ -12,7 +13,7 @@ interface Options {
   terseClassNames?: boolean;
 }
 
-class BaseStyles {
+abstract class BaseStyles {
 
   private readonly getExtentions: (extension: string) => Array<string>;
   private readonly baseNode: InputNode;
@@ -24,6 +25,10 @@ class BaseStyles {
     this.getExtentions = options.getExtentions;
     this.baseNode = options.baseNode;
     this.terseClassNames = options.terseClassNames ?? false;
+  }
+
+  get name(): string {
+    return '';
   }
 
   get extentions(): Array<string> {
@@ -42,9 +47,9 @@ class BaseStyles {
     });
   }
 
-  treeToLocation(destDir: string, tooToBePlaced: InputNode, ...trees: InputNode[]): BroccoliNode {
+  treeToLocation(destDir: string | undefined, tooToBePlaced: InputNode, ...trees: InputNode[]): BroccoliNode {
     const placedTree = funnel(tooToBePlaced, {destDir});
-    return merge(trees.concat(placedTree), {overwrite: true});
+    return mergeTrees(trees.concat(placedTree), {overwrite: true});
   }
 }
 
@@ -54,41 +59,32 @@ const MANIFEST_TEMPATES = {
   styl: '@import "<file-path>"',
 }
 
-export class ColocateStyles extends BaseStyles {
+export class ColocateStyles extends BaseStyles implements PreprocessPluginJsCss {
 
   get name(): string {
     return 'colocate-styles';
   }
 
-  generateManifest(tree: InputNode): BroccoliNode {
+  toTree(tree: InputNode, inputPath: string): BroccoliNode {
+    const projectStyles = this.generateManifest(this.colocatedStyles);
+    return this.treeToLocation(inputPath, projectStyles, tree);
+  }
+
+  private generateManifest(tree: InputNode): BroccoliNode {
     const manifest: Manifest = generateManifest(tree, {
       outputFileNameWithoutExtension: 'ember-styles',
       templates: MANIFEST_TEMPATES,
       annotation: 'Manifest (ember-component-css style file manifest)',
     });
 
-    return merge([tree, manifest]);
-  }
-
-  toTree(tree: InputNode, inputPath: string): BroccoliNode {
-    const projectStyles = this.generateManifest(this.colocatedStyles);
-
-    return this.treeToLocation(inputPath, projectStyles, tree);
+    return mergeTrees([tree, manifest]);
   }
 }
 
-export class NamespaceStyles extends BaseStyles {
+export class NamespaceStyles extends BaseStyles implements PreprocessPluginJsCss {
 
   get name(): string {
     return 'namespace-styles';
-  }
-
-  namespaceStyles(tree: InputNode): BroccoliNode {
-    return new BroccoliNamespaceStyles(tree, {
-      extensions: this.extentions,
-      terseClassNames: this.terseClassNames,
-      annotation: 'Filter (ember-component-css process root & or :--component with class name)',
-    });
   }
 
   toTree(tree: InputNode, inputPath: string): BroccoliNode {
@@ -101,9 +97,17 @@ export class NamespaceStyles extends BaseStyles {
     const namespacedProjectStyles = this.namespaceStyles(projectStyles);
     return this.treeToLocation(inputPath, namespacedProjectStyles, tree);
   }
+
+  private namespaceStyles(tree: InputNode): BroccoliNode {
+    return new BroccoliNamespaceStyles(tree, {
+      extensions: this.extentions,
+      terseClassNames: this.terseClassNames,
+      annotation: 'Filter (ember-component-css process root & or :--component with class name)',
+    });
+  }
 }
 
-export class ColocatedNamespaceObjects extends BaseStyles {
+export class ColocatedNamespaceObjects extends BaseStyles implements PreprocessPluginJsCss {
 
   get name(): string {
     return 'colocate-and-namespace-styles-in-js';
@@ -114,22 +118,21 @@ export class ColocatedNamespaceObjects extends BaseStyles {
       terseClassNames: this.terseClassNames,
     });
 
-    // @ts-ignore
     return this.treeToLocation(outputPath, generatedFiles, tree);
   }
 }
 
-export class ColocatedNamespaceTemplates extends BaseStyles {
+export class ColocatedNamespaceTemplates extends BaseStyles implements PreprocessPlugin {
 
   get name(): string {
     return 'colocate-and-namespace-styles-in-templates-only';
   }
 
-  toTree(tree: BroccoliNode, _inputPath: string, outputPath: string): BroccoliNode {
+  toTree(tree: BroccoliNode): BroccoliNode {
     const scopedTemplates = new ScopeTemplates(tree, {
       terseClassNames: this.terseClassNames,
     });
 
-    return this.treeToLocation(outputPath, scopedTemplates, tree);
+    return this.treeToLocation(undefined, scopedTemplates, tree);
   }
 }
