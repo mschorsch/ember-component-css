@@ -26,6 +26,7 @@ function addon<T extends ExtendOptions<Addon>>(options: T & ExtendThisType<Addon
 // - fix template-lintrc for 'no-implicit-this'
 // - inline `broccoli-file-manifest` and `broccoli-tree-walker`??
 // - check appConfig
+// - write tests for glimmer components and template-only components and classic file structure
 
 export default addon({
 

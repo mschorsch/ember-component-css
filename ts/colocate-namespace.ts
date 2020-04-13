@@ -27,10 +27,6 @@ abstract class BaseStyles {
     this.terseClassNames = options.terseClassNames ?? false;
   }
 
-  get name(): string {
-    return '';
-  }
-
   get extentions(): Array<string> {
     if (!this._extentions) {
       this._extentions = this.getExtentions('css');
@@ -54,7 +50,7 @@ abstract class BaseStyles {
 }
 
 const MANIFEST_TEMPATES = {
-  default: '@import "<file-path>";',
+  default: '@import "<file-path>";', // css, scss, less
   sass: '@import "<file-path>"',
   styl: '@import "<file-path>"',
 }
