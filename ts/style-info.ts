@@ -4,6 +4,8 @@ import {generateClassName} from './component-names';
 import TreeWalker, {TreeWalkerOptions} from 'broccoli-tree-walker';
 import {InputNode} from 'broccoli-node-api';
 
+// FIXME Find a better solution
+
 interface StyleInfoOptions extends TreeWalkerOptions {
   terseClassNames: boolean;
 }
@@ -20,9 +22,9 @@ export class StyleInfo extends TreeWalker {
 
   create(stylePath: string, _rootPath: string): void {
     const styleNamespace = generateClassName(stylePath, this.terseClassNames);
-    const styleFile = fileContents(styleNamespace);
+    const styleFileContent = fileContents(styleNamespace);
     const fullStyleFilePath = this.fullStylePath(stylePath)
-    return fs.outputFileSync(fullStyleFilePath, styleFile);
+    return fs.outputFileSync(fullStyleFilePath, styleFileContent);
   }
 
   unlink(stylePath: string, _rootPath: string): void {

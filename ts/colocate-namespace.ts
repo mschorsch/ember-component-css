@@ -1,8 +1,8 @@
 import funnel from 'broccoli-funnel';
 import mergeTrees from 'broccoli-merge-trees';
 import {default as generateManifest, Manifest} from 'broccoli-file-manifest';
-import {NamespaceStyles as BroccoliNamespaceStyles} from './namespace-styles';
-import {ScopeTemplates} from './scope-templates';
+import {NamespaceStylesFilter} from './namespace-styles-filter';
+import {ScopeTemplatesFilter} from './scope-templates-filter';
 import {StyleInfo} from './style-info';
 import {InputNode, Node as BroccoliNode} from 'broccoli-node-api';
 import {PreprocessPlugin, PreprocessPluginJsCss} from 'ember-cli-preprocess-registry';
@@ -62,11 +62,11 @@ export class ColocateStyles extends BaseStyles implements PreprocessPluginJsCss 
   }
 
   toTree(tree: InputNode, inputPath: string): BroccoliNode {
-    const projectStyles = this.generateManifest(this.colocatedStyles);
+    const projectStyles = ColocateStyles.generateManifest(this.colocatedStyles);
     return this.treeToLocation(inputPath, projectStyles, tree);
   }
 
-  private generateManifest(tree: InputNode): BroccoliNode {
+  private static generateManifest(tree: InputNode): BroccoliNode {
     const manifest: Manifest = generateManifest(tree, {
       outputFileNameWithoutExtension: 'ember-styles',
       templates: MANIFEST_TEMPATES,
@@ -95,7 +95,7 @@ export class NamespaceStyles extends BaseStyles implements PreprocessPluginJsCss
   }
 
   private namespaceStyles(tree: InputNode): BroccoliNode {
-    return new BroccoliNamespaceStyles(tree, {
+    return new NamespaceStylesFilter(tree, {
       extensions: this.extentions,
       terseClassNames: this.terseClassNames,
       annotation: 'Filter (ember-component-css process root & or :--component with class name)',
@@ -125,7 +125,7 @@ export class ColocatedNamespaceTemplates extends BaseStyles implements Preproces
   }
 
   toTree(tree: BroccoliNode): BroccoliNode {
-    const scopedTemplates = new ScopeTemplates(tree, {
+    const scopedTemplates = new ScopeTemplatesFilter(tree, {
       terseClassNames: this.terseClassNames,
     });
 

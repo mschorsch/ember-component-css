@@ -1,18 +1,15 @@
 import md5 from 'md5';
 
+const SEPARATOR = '__';
+const TERMINATOR = '/';
+
 export function generateClassName(modifiedPath: string, terseClassNames: boolean): string {
-  const seperator = '__';
-  const componentPath = path(modifiedPath);
-  let className = seperator + md5(componentPath).slice(-5);
+  const componentPath = modifiedPath.substr(0, modifiedPath.lastIndexOf(TERMINATOR));
+  let className = SEPARATOR + md5(componentPath).slice(-5);
 
   if (!terseClassNames) {
-    className = seperator + componentPath.replace(/\//g, seperator) + className;
+    className = SEPARATOR + componentPath.replace(/\//g, SEPARATOR) + className;
   }
 
   return className;
-}
-
-function path(actualPath: string): string {
-  const terminator = '/';
-  return actualPath.substr(0, actualPath.lastIndexOf(terminator));
 }

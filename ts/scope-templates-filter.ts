@@ -7,7 +7,7 @@ interface ScopeTemplatesOptions {
   terseClassNames: boolean;
 }
 
-export class ScopeTemplates extends Filter {
+export class ScopeTemplatesFilter extends Filter {
 
   private readonly terseClassNames: boolean;
 
