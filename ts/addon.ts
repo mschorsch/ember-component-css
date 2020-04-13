@@ -25,6 +25,7 @@ function addon<T extends ExtendOptions<Addon>>(options: T & ExtendThisType<Addon
 // - update dependencies to the latest
 // - fix template-lintrc for 'no-implicit-this'
 // - inline `broccoli-file-manifest` and `broccoli-tree-walker`??
+// - check appConfig
 
 export default addon({
 
@@ -46,7 +47,12 @@ export default addon({
     return Object.assign(this._defaultOptions(), emberCliStyles);
   },
 
-  setupPreprocessorRegistry(_type, registry) {
+  setupPreprocessorRegistry(type, registry) {
+    // We only register for `parent` which is an `EmberApp` or `EmberAddon`
+    if (type !== 'parent') {
+      return;
+    }
+
     // @ts-ignore
     const app = registry.app;
 
